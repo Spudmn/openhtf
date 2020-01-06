@@ -29,12 +29,43 @@
 
       <div class="u-text-align-right">
         <button
+          [style.display]="is_user_question() ? 'none' : 'inline'"
           type="button"
           class="htf-rounded-button-grey u-push-top"
           (click)="sendResponse(response_field)">
           {{ hasTextInput() ? 'Submit' : 'Okay' }}
         </button>
+        
+        <button
+          [style.display]="hasButton_1() ? 'inline' : 'none'"
+          type="button"
+          class="htf-rounded-button-grey u-push-top"
+          (click)="sendAnswer($event.target.textContent)">
+          {{Button_1_Text()}}
+        </button>
+        
+        <button
+          [style.display]="hasButton_2() ? 'inline' : 'none'"
+          type="button"
+          class="htf-rounded-button-grey u-push-top"
+          (click)="sendAnswer($event.target.textContent)">
+          {{Button_2_Text()}}
+        </button>
+
+        <button
+          [style.display]="hasButton_3() ? 'inline' : 'none'"
+          type="button"
+          class="htf-rounded-button-grey u-push-top"
+          (click)="sendAnswer($event.target.textContent )">
+          {{Button_3_Text()}}
+        </button>
+
+
+                
       </div>
+
+
+
 
     </div>
 

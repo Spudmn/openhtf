@@ -56,8 +56,12 @@ class PromptUnansweredError(Exception):
   """Raised when a prompt times out or otherwise comes back unanswered."""
 
 
-Prompt = collections.namedtuple('Prompt', 'id message text_input show_image image_url')
+Prompt = collections.namedtuple('Prompt', 'id message text_input show_image image_url is_user_question show_button_1 button_1_text show_button_2 button_2_text show_button_3 button_3_text')
 
+
+
+
+              
 
 class ConsolePrompt(threading.Thread):
   """Thread that displays a prompt to the console and waits for a response.
@@ -152,7 +156,15 @@ class UserInput(plugs.FrontendAwareBasePlug):
               'message': self._prompt.message,
               'text-input': self._prompt.text_input,
               'show-image': self._prompt.show_image,
-              'image-url': self._prompt.image_url}
+              'image-url': self._prompt.image_url,
+              'is-user-question': self._prompt.is_user_question,
+              'show-button-1': self._prompt.show_button_1,
+              'button-1-text': self._prompt.button_1_text,
+              'show-button-2': self._prompt.show_button_2,
+              'button-2-text': self._prompt.button_2_text,
+              'show-button-3': self._prompt.show_button_3,
+              'button-3-text':  self._prompt.button_3_text
+              }
 
   def tearDown(self):
     self.remove_prompt()
@@ -166,7 +178,7 @@ class UserInput(plugs.FrontendAwareBasePlug):
         self._console_prompt = None
       self.notify_update()
 
-  def prompt(self, message, text_input=False, timeout_s=None, cli_color='', image_url = None):
+  def prompt(self, message, text_input=False, timeout_s=None, cli_color='', image_url = None,button_1_text='',button_2_text='',button_3_text=''):
     """Display a prompt and wait for a response.
 
     Args:
@@ -182,10 +194,10 @@ class UserInput(plugs.FrontendAwareBasePlug):
       MultiplePromptsError: There was already an existing prompt.
       PromptUnansweredError: Timed out waiting for the user to respond.
     """
-    self.start_prompt(message, text_input, cli_color, image_url)
+    self.start_prompt(message, text_input, cli_color, image_url,button_1_text,button_2_text,button_3_text)
     return self.wait_for_prompt(timeout_s)
 
-  def start_prompt(self, message, text_input=False, cli_color='', image_url = None):
+  def start_prompt(self, message, text_input=False, cli_color='', image_url = None,button_1_text='',button_2_text='',button_3_text=''):
     """Display a prompt.
 
     Args:
@@ -210,8 +222,27 @@ class UserInput(plugs.FrontendAwareBasePlug):
       show_image = False
       if image_url is not None:
           show_image = True
+      
+      is_user_question = False
+      show_button_1 = False
+      show_button_2 = False
+      show_button_3 = False
+      if len(button_1_text):
+          show_button_1 = True
+          is_user_question = True
+      if len(button_2_text):
+          show_button_2 = True
+          is_user_question = True
+      if len(button_3_text):
+          show_button_3 = True
+          is_user_question = True
+      
       self._prompt = Prompt(
-          id=prompt_id, message=message, text_input=text_input, show_image=show_image, image_url=image_url)
+          id=prompt_id, message=message, text_input=text_input, show_image=show_image, image_url=image_url, 
+                is_user_question=is_user_question, 
+                show_button_1=show_button_1, button_1_text=button_1_text, 
+                show_button_2=show_button_2, button_2_text=button_2_text, 
+                show_button_3=show_button_3, button_3_text =button_3_text )
       if sys.stdin.isatty():
         self._console_prompt = ConsolePrompt(
             message, functools.partial(self.respond, prompt_id), cli_color)
