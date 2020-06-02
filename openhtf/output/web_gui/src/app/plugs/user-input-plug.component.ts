@@ -22,7 +22,6 @@ export declare interface UserInputPlugState {
   id: string;
   message: string;
   'text-input': string;
-  'show-image': string;
   'image-url': string;
   'is-user-question': string;
   'show-button-1': string;
@@ -31,8 +30,6 @@ export declare interface UserInputPlugState {
   'button-2-text': string;
   'show-button-3': string;
   'button-3-text': string;
-  
-  
 }
 
 @Component({
@@ -77,19 +74,16 @@ export class UserInputPlugComponent extends BasePlug {
   }
 
   hasImage() {
-    return this.getPlugState()['show-image'];
+    return this.getPlugState()['image-url'];
   }
-
 
   get Image_URL() {
     return this.getPlugState()['image-url'];
   }
 
-
   is_user_question() {
      return this.getPlugState()['is-user-question'];
   }
-  
  	
   hasButton_1() {
     return this.getPlugState()['show-button-1'];
@@ -98,7 +92,6 @@ export class UserInputPlugComponent extends BasePlug {
   Button_1_Text() {
     return this.getPlugState()['button-1-text'];
   }
-
 
   hasButton_2() {
     return this.getPlugState()['show-button-2'];
@@ -128,7 +121,6 @@ export class UserInputPlugComponent extends BasePlug {
     }
     this.respond('respond', [promptId, response]);
   }
-
 
   sendResponse(input: HTMLInputElement) {
     const promptId = this.getPlugState().id;

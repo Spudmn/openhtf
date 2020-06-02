@@ -56,7 +56,7 @@ class PromptUnansweredError(Exception):
   """Raised when a prompt times out or otherwise comes back unanswered."""
 
 
-Prompt = collections.namedtuple('Prompt', 'id message text_input show_image image_url is_user_question show_button_1 button_1_text show_button_2 button_2_text show_button_3 button_3_text')
+Prompt = collections.namedtuple('Prompt', 'id message text_input image_url is_user_question show_button_1 button_1_text show_button_2 button_2_text show_button_3 button_3_text')
 
 
 
@@ -155,7 +155,6 @@ class UserInput(plugs.FrontendAwareBasePlug):
       return {'id': self._prompt.id,
               'message': self._prompt.message,
               'text-input': self._prompt.text_input,
-              'show-image': self._prompt.show_image,
               'image-url': self._prompt.image_url,
               'is-user-question': self._prompt.is_user_question,
               'show-button-1': self._prompt.show_button_1,
@@ -219,9 +218,6 @@ class UserInput(plugs.FrontendAwareBasePlug):
                  ', Expects text input.' if text_input else '')
 
       self._response = None
-      show_image = False
-      if image_url is not None:
-          show_image = True
       
       is_user_question = False
       show_button_1 = False
@@ -238,11 +234,12 @@ class UserInput(plugs.FrontendAwareBasePlug):
           is_user_question = True
       
       self._prompt = Prompt(
-          id=prompt_id, message=message, text_input=text_input, show_image=show_image, image_url=image_url, 
+          id=prompt_id, message=message, text_input=text_input, image_url=image_url, 
                 is_user_question=is_user_question, 
                 show_button_1=show_button_1, button_1_text=button_1_text, 
                 show_button_2=show_button_2, button_2_text=button_2_text, 
                 show_button_3=show_button_3, button_3_text =button_3_text )
+
       if sys.stdin.isatty():
         self._console_prompt = ConsolePrompt(
             message, functools.partial(self.respond, prompt_id), cli_color)
