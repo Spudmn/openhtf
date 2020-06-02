@@ -40,14 +40,18 @@ def _send_mfg_inspector_request(envelope_data, credentials, destination_url):
   try:
     result = json.loads(content)
   except Exception:
-    logging.debug('Upload failed with response %s: %s', resp, content)
+    logging.warning('Upload failed with response %s: %s', resp, content)
     raise UploadFailedError(resp, content)
 
-  if resp.status != 200:
-    logging.debug('Upload failed: %s', result)
-    raise UploadFailedError(result['error'], result)
+  if resp.status == 200:
+    return result
 
-  return result
+  message = '%s: %s' % (result.get('error',
+                                   'UNKNOWN_ERROR'), result.get('message'))
+  if resp.status == 400:
+    raise InvalidTestRunError(message)
+  else:
+    raise UploadFailedError(message)
 
 
 def send_mfg_inspector_data(inspector_proto, credentials, destination_url):
@@ -258,4 +262,3 @@ class UploadToMfgInspector(MfgInspector):
   def __call__(self, test_record_obj):  # pylint: disable=invalid-name
     upload_callback = self.upload()
     upload_callback(test_record_obj)
-

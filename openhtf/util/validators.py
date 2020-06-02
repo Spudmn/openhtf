@@ -5,9 +5,8 @@ method.  They can then be accessed directly as attributes on the validators
 module, and will typically be a type, instances of which are callable:
 
   from openhtf.util import validators
-  from openhtf.util import measurements
 
-  class MyLessThanValidator(ValidatorBase):
+  class MyLessThanValidator(validators.ValidatorBase):
     def __init__(self, limit):
       self.limit = limit
 
@@ -35,7 +34,7 @@ simply attach them to the Measurement with the .with_validator() method:
     return value < 4
 
   @measurements.measures(
-      measurements.Measurement('my_measurement).with_validator(LessThan4))
+      measurements.Measurement('my_measurement').with_validator(LessThan4))
   def MyPhase(test):
     test.measurements.my_measurement = 5  # Will also 'FAIL'
 
@@ -84,12 +83,14 @@ _identity = lambda x: x
 
 class ValidatorBase(with_metaclass(abc.ABCMeta, object)):
   @abc.abstractmethod
+
   def __call__(self, value):
     """Should validate value, returning a boolean result."""
 
 
 class RangeValidatorBase(with_metaclass(abc.ABCMeta, ValidatorBase)):
   @abc.abstractproperty
+
   def minimum(self):
     """Should return the minimum, inclusive value of the range."""
 
@@ -99,6 +100,27 @@ class RangeValidatorBase(with_metaclass(abc.ABCMeta, ValidatorBase)):
 
 
 # Built-in validators below this line
+class AllInRangeValidator(ValidatorBase):
+
+  def __init__(self, min_value, max_value):
+    self.min_value = min_value
+    self.max_value = max_value
+
+  def __call__(self, values):
+    return all([self.min_value <= value <= self.max_value for value in values])
+
+
+class AllEqualsValidator(ValidatorBase):
+
+  def __init__(self, spec):
+    self.spec = spec
+
+  def __call__(self, values):
+    return all([value == self.spec for value in values])
+
+register(AllInRangeValidator, name='all_in_range')
+register(AllEqualsValidator, name='all_equals')
+
 
 class InRange(RangeValidatorBase):
   """Validator to verify a numeric value is within a range."""
@@ -268,3 +290,41 @@ class WithinPercent(RangeValidatorBase):
 @register
 def within_percent(expected, percent):
   return WithinPercent(expected, percent)
+
+
+class WithinTolerance(RangeValidatorBase):
+  """Validates that a number is within a given tolerance of a value."""
+
+  def __init__(self, expected, tolerance):
+    if tolerance < 0:
+      raise ValueError(
+        'tolerance argument is {}, must be >0'.format(tolerance))
+    self.expected = expected
+    self.tolerance = tolerance
+
+  @property
+  def minimum(self):
+    return self.expected - self.tolerance
+
+  @property
+  def maximum(self):
+    return self.expected + self.tolerance
+
+  def __call__(self, value):
+    return self.minimum <= value <= self.maximum
+
+  def __str__(self):
+    return "'x' is within {} of {}".format(self.tolerance, self.expected)
+
+  def __eq__(self, other):
+    return (isinstance(other, type(self)) and
+            self.expected == other.expected and
+            self.tolerance == other.tolerance)
+
+  def __ne__(self, other):
+    return not self == other
+
+
+@register
+def within_tolerance(expected, tolerance):
+  return WithinTolerance(expected, tolerance)
